@@ -1,7 +1,671 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jetlag Calculator - Slaap & Eet Schema</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card h2 {
+            color: #00d9ff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: #aaa;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        select, input {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        button {
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        #results {
+            display: none;
+        }
+
+        .result-section {
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border-left: 4px solid #00d9ff;
+        }
+
+        .result-section.sleep {
+            border-left-color: #a855f7;
+            background: rgba(168, 85, 247, 0.05);
+        }
+
+        .result-section.food {
+            border-left-color: #f97316;
+            background: rgba(249, 115, 22, 0.05);
+        }
+
+        .result-section.light {
+            border-left-color: #eab308;
+            background: rgba(234, 179, 8, 0.05);
+        }
+
+        .result-section.plane {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .result-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-section.sleep h3 { color: #a855f7; }
+        .result-section.food h3 { color: #f97316; }
+        .result-section.light h3 { color: #eab308; }
+        .result-section.plane h3 { color: #22c55e; }
+
+        .result-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .result-section li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .result-section li:last-child {
+            border-bottom: none;
+        }
+
+        .time-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .summary-box h3 {
+            color: #00ff88;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .summary-box p {
+            font-size: 1.1rem;
+            color: #ccc;
+        }
+
+        .timezone-diff {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .direction {
+            font-size: 1rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 16px;
+            height: 16px;
+            background: #00d9ff;
+            border-radius: 50%;
+            margin-right: 20px;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content strong {
+            color: #00d9ff;
+        }
+
+        .advice-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .advice-tag.important {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .advice-tag.tip {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .timezone-diff {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+    <div class="container">
+        <header>
+            <h1>Jetlag Calculator</h1>
+            <p>Bereken je optimale slaap- en eetschema voor een uitgeruste aankomst</p>
+        </header>
+
+        <div class="card">
+            <h2>Jouw Reis Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="departure-tz">Vertrek Tijdzone</label>
+                    <select id="departure-tz">
+                        <option value="1">Amsterdam (UTC+1)</option>
+                        <option value="0">Londen (UTC+0)</option>
+                        <option value="2">Athene (UTC+2)</option>
+                        <option value="3">Moskou (UTC+3)</option>
+                        <option value="4">Dubai (UTC+4)</option>
+                        <option value="5.5">Mumbai (UTC+5:30)</option>
+                        <option value="7">Bangkok (UTC+7)</option>
+                        <option value="8">Singapore/Hong Kong (UTC+8)</option>
+                        <option value="9">Tokyo (UTC+9)</option>
+                        <option value="10">Sydney (UTC+10)</option>
+                        <option value="12">Auckland (UTC+12)</option>
+                        <option value="-5">New York (UTC-5)</option>
+                        <option value="-6">Chicago (UTC-6)</option>
+                        <option value="-7">Denver (UTC-7)</option>
+                        <option value="-8">Los Angeles (UTC-8)</option>
+                        <option value="-3">Sao Paulo (UTC-3)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="arrival-tz">Aankomst Tijdzone</label>
+                    <select id="arrival-tz">
+                        <option value="-5">New York (UTC-5)</option>
+                        <option value="1">Amsterdam (UTC+1)</option>
+                        <option value="0">Londen (UTC+0)</option>
+                        <option value="2">Athene (UTC+2)</option>
+                        <option value="3">Moskou (UTC+3)</option>
+                        <option value="4">Dubai (UTC+4)</option>
+                        <option value="5.5">Mumbai (UTC+5:30)</option>
+                        <option value="7">Bangkok (UTC+7)</option>
+                        <option value="8">Singapore/Hong Kong (UTC+8)</option>
+                        <option value="9">Tokyo (UTC+9)</option>
+                        <option value="10">Sydney (UTC+10)</option>
+                        <option value="12">Auckland (UTC+12)</option>
+                        <option value="-6">Chicago (UTC-6)</option>
+                        <option value="-7">Denver (UTC-7)</option>
+                        <option value="-8">Los Angeles (UTC-8)</option>
+                        <option value="-3">Sao Paulo (UTC-3)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="departure-time">Vertrektijd (lokale tijd)</label>
+                    <input type="time" id="departure-time" value="10:00">
+                </div>
+
+                <div class="form-group">
+                    <label for="arrival-time">Aankomsttijd (lokale tijd bestemming)</label>
+                    <input type="time" id="arrival-time" value="14:00">
+                </div>
+
+                <div class="form-group">
+                    <label for="flight-duration">Vluchtduur (uren)</label>
+                    <input type="number" id="flight-duration" value="8" min="1" max="24" step="0.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="normal-bedtime">Normale bedtijd thuis</label>
+                    <input type="time" id="normal-bedtime" value="23:00">
+                </div>
+
+                <div class="form-group">
+                    <label for="normal-waketime">Normale wektijd thuis</label>
+                    <input type="time" id="normal-waketime" value="07:00">
+                </div>
+
+                <div class="form-group">
+                    <label for="days-before">Dagen voor vertrek om aan te passen</label>
+                    <select id="days-before">
+                        <option value="0">Geen voorbereiding</option>
+                        <option value="1">1 dag</option>
+                        <option value="2">2 dagen</option>
+                        <option value="3" selected>3 dagen</option>
+                        <option value="5">5 dagen</option>
+                        <option value="7">1 week</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="calculateSchedule()">Bereken Mijn Schema</button>
+        </div>
+
+        <div id="results">
+            <div class="summary-box">
+                <h3>Tijdzoneverschil</h3>
+                <div class="timezone-diff" id="tz-diff">+6 uur</div>
+                <div class="direction" id="direction">Je reist oostwaarts - je verliest tijd</div>
+                <p id="adjustment-days"></p>
+            </div>
+
+            <div class="card">
+                <h2>Jouw Persoonlijke Aanpassingsplan</h2>
+
+                <div class="result-section plane">
+                    <h3>In het Vliegtuig</h3>
+                    <div id="plane-advice"></div>
+                </div>
+
+                <div class="result-section sleep">
+                    <h3>Slaapschema</h3>
+                    <div id="sleep-advice"></div>
+                </div>
+
+                <div class="result-section food">
+                    <h3>Eetschema</h3>
+                    <div id="food-advice"></div>
+                </div>
+
+                <div class="result-section light">
+                    <h3>Lichtblootstelling</h3>
+                    <div id="light-advice"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Dag-voor-Dag Voorbereiding</h2>
+                <div id="preparation-schedule"></div>
+            </div>
+
+            <div class="card">
+                <h2>Na Aankomst</h2>
+                <div id="arrival-advice"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function minutesToTime(minutes) {
+            let mins = ((minutes % 1440) + 1440) % 1440;
+            const hours = Math.floor(mins / 60);
+            const mins2 = mins % 60;
+            return `${hours.toString().padStart(2, '0')}:${mins2.toString().padStart(2, '0')}`;
+        }
+
+        function formatTime(minutes) {
+            return minutesToTime(minutes);
+        }
+
+        function calculateSchedule() {
+            const departureTz = parseFloat(document.getElementById('departure-tz').value);
+            const arrivalTz = parseFloat(document.getElementById('arrival-tz').value);
+            const departureTime = document.getElementById('departure-time').value;
+            const arrivalTime = document.getElementById('arrival-time').value;
+            const flightDuration = parseFloat(document.getElementById('flight-duration').value);
+            const normalBedtime = document.getElementById('normal-bedtime').value;
+            const normalWaketime = document.getElementById('normal-waketime').value;
+            const daysBefore = parseInt(document.getElementById('days-before').value);
+
+            const tzDiff = arrivalTz - departureTz;
+            const direction = tzDiff > 0 ? 'east' : 'west';
+            const absDiff = Math.abs(tzDiff);
+
+            // Update summary
+            const diffSign = tzDiff >= 0 ? '+' : '';
+            document.getElementById('tz-diff').textContent = `${diffSign}${tzDiff} uur`;
+
+            if (direction === 'east') {
+                document.getElementById('direction').textContent = `Je reist oostwaarts - je "verliest" ${absDiff} uur`;
+            } else {
+                document.getElementById('direction').textContent = `Je reist westwaarts - je "wint" ${absDiff} uur`;
+            }
+
+            const adjustmentDays = Math.ceil(absDiff / 1.5);
+            document.getElementById('adjustment-days').textContent =
+                `Verwachte aanpassingstijd: ${adjustmentDays} dagen`;
+
+            // Calculate times
+            const bedtimeMins = timeToMinutes(normalBedtime);
+            const waketimeMins = timeToMinutes(normalWaketime);
+            const departureMins = timeToMinutes(departureTime);
+            const arrivalMins = timeToMinutes(arrivalTime);
+            const flightMins = flightDuration * 60;
+
+            // Plane advice
+            let planeAdvice = '<ul>';
+
+            // Convert departure time to destination timezone to understand body clock
+            const bodyTimeAtDeparture = departureMins + (tzDiff * 60);
+            const bodyTimeAtArrival = bodyTimeAtDeparture + flightMins;
+
+            // When should you sleep on the plane?
+            const targetSleepStart = bedtimeMins + (tzDiff * 60);
+            const targetSleepEnd = waketimeMins + (tzDiff * 60);
+
+            // Calculate optimal sleep window during flight
+            let sleepOnPlane = false;
+            let planeSleptStart = 0;
+            let planeSleepEnd = 0;
+
+            // Check if night time (in destination) falls during flight
+            const destNightStart = bedtimeMins; // Target bedtime in destination
+            const destNightEnd = waketimeMins; // Target wake time in destination
+
+            // Flight times in destination timezone
+            const flightStartDest = arrivalMins - flightMins;
+            const flightEndDest = arrivalMins;
+
+            if (flightDuration >= 4) {
+                if (direction === 'east') {
+                    // Flying east: try to sleep early in the flight to wake up closer to destination morning
+                    planeAdvice += `<li><span class="time-badge">Direct na opstijgen</span> Probeer binnen 1-2 uur na opstijgen te slapen</li>`;
+                    planeAdvice += `<li><span class="time-badge">${Math.min(6, flightDuration - 1)} uur voor landing</span> Dit is je ideale slaapwindow</li>`;
+                    sleepOnPlane = true;
+                } else {
+                    // Flying west: stay awake longer, sleep in second half of flight
+                    const stayAwakeHours = Math.min(4, flightDuration / 2);
+                    planeAdvice += `<li><span class="time-badge">Eerste ${stayAwakeHours} uur</span> Blijf wakker - kijk een film, lees een boek</li>`;
+                    planeAdvice += `<li><span class="time-badge">Daarna</span> Probeer te slapen in de tweede helft van de vlucht</li>`;
+                    sleepOnPlane = true;
+                }
+            } else {
+                planeAdvice += `<li><span class="time-badge">Korte vlucht</span> Bij vluchten onder 4 uur: blijf liever wakker</li>`;
+            }
+
+            // Eating on plane
+            if (direction === 'east') {
+                planeAdvice += `<li><span class="time-badge">Eten</span> Eet licht of sla de maaltijd over - vasten helpt je biologische klok resetten <span class="advice-tag tip">TIP</span></li>`;
+            } else {
+                planeAdvice += `<li><span class="time-badge">Eten</span> Eet wanneer het in je bestemming etenstijd is</li>`;
+            }
+
+            planeAdvice += `<li><span class="time-badge">Hydratatie</span> Drink veel water, vermijd alcohol en cafeïne <span class="advice-tag important">BELANGRIJK</span></li>`;
+            planeAdvice += '</ul>';
+            document.getElementById('plane-advice').innerHTML = planeAdvice;
+
+            // Sleep advice
+            let sleepAdvice = '<ul>';
+
+            if (direction === 'east') {
+                const newBedtime = (bedtimeMins - (tzDiff * 60) + 1440) % 1440;
+                const newWaketime = (waketimeMins - (tzDiff * 60) + 1440) % 1440;
+
+                sleepAdvice += `<li><span class="time-badge">Nieuwe bedtijd</span> Ga naar bed om ${formatTime(newBedtime)} (jouw oude tijd) = ${normalBedtime} (bestemmingstijd)</li>`;
+                sleepAdvice += `<li><span class="time-badge">Nieuwe wektijd</span> Sta op om ${formatTime(newWaketime)} (jouw oude tijd) = ${normalWaketime} (bestemmingstijd)</li>`;
+                sleepAdvice += `<li><span class="time-badge">Tip</span> Neem melatonine (0.5-3mg) 30 min voor je nieuwe bedtijd <span class="advice-tag tip">TIP</span></li>`;
+            } else {
+                const newBedtime = (bedtimeMins - (tzDiff * 60) + 1440) % 1440;
+                const newWaketime = (waketimeMins - (tzDiff * 60) + 1440) % 1440;
+
+                sleepAdvice += `<li><span class="time-badge">Nieuwe bedtijd</span> Ga naar bed om ${formatTime(newBedtime)} (jouw oude tijd) = ${normalBedtime} (bestemmingstijd)</li>`;
+                sleepAdvice += `<li><span class="time-badge">Nieuwe wektijd</span> Sta op om ${formatTime(newWaketime)} (jouw oude tijd) = ${normalWaketime} (bestemmingstijd)</li>`;
+                sleepAdvice += `<li><span class="time-badge">Tip</span> Blijf 's avonds langer wakker, vermijd dutjes overdag</li>`;
+            }
+            sleepAdvice += '</ul>';
+            document.getElementById('sleep-advice').innerHTML = sleepAdvice;
+
+            // Food advice
+            let foodAdvice = '<ul>';
+            const breakfastDest = 8 * 60; // 08:00
+            const lunchDest = 12.5 * 60; // 12:30
+            const dinnerDest = 19 * 60; // 19:00
+
+            const breakfastOld = (breakfastDest - (tzDiff * 60) + 1440) % 1440;
+            const lunchOld = (lunchDest - (tzDiff * 60) + 1440) % 1440;
+            const dinnerOld = (dinnerDest - (tzDiff * 60) + 1440) % 1440;
+
+            foodAdvice += `<li><span class="time-badge">Ontbijt</span> ${formatTime(breakfastOld)} (jouw oude tijd) = 08:00 bestemmingstijd</li>`;
+            foodAdvice += `<li><span class="time-badge">Lunch</span> ${formatTime(lunchOld)} (jouw oude tijd) = 12:30 bestemmingstijd</li>`;
+            foodAdvice += `<li><span class="time-badge">Diner</span> ${formatTime(dinnerOld)} (jouw oude tijd) = 19:00 bestemmingstijd</li>`;
+
+            if (direction === 'east') {
+                foodAdvice += `<li><span class="time-badge">Strategie</span> Vast de laatste 12-16 uur voor aankomst, eet dan ontbijt op bestemmingstijd <span class="advice-tag important">BELANGRIJK</span></li>`;
+            } else {
+                foodAdvice += `<li><span class="time-badge">Strategie</span> Eet een stevig diner op bestemmingstijd, zelfs als je niet hongerig bent</li>`;
+            }
+            foodAdvice += '</ul>';
+            document.getElementById('food-advice').innerHTML = foodAdvice;
+
+            // Light advice
+            let lightAdvice = '<ul>';
+
+            if (direction === 'east') {
+                const lightSeekTime = (6 * 60 - (tzDiff * 60) + 1440) % 1440; // 6 AM destination
+                const lightAvoidTime = (18 * 60 - (tzDiff * 60) + 1440) % 1440; // 6 PM destination
+
+                lightAdvice += `<li><span class="time-badge">Licht zoeken</span> Zoek helder licht tussen ${formatTime(lightSeekTime)} en ${formatTime((10 * 60 - (tzDiff * 60) + 1440) % 1440)} (06:00-10:00 bestemmingstijd)</li>`;
+                lightAdvice += `<li><span class="time-badge">Licht vermijden</span> Vermijd helder licht na ${formatTime(lightAvoidTime)} (18:00 bestemmingstijd)</li>`;
+                lightAdvice += `<li><span class="time-badge">Zonnebril</span> Draag een zonnebril in de avond (jouw tijd) om je lichaam voor te bereiden <span class="advice-tag tip">TIP</span></li>`;
+            } else {
+                const lightSeekTime = (16 * 60 - (tzDiff * 60) + 1440) % 1440; // 4 PM destination
+                const lightAvoidTime = (8 * 60 - (tzDiff * 60) + 1440) % 1440; // 8 AM destination
+
+                lightAdvice += `<li><span class="time-badge">Licht zoeken</span> Zoek helder licht tussen ${formatTime(lightSeekTime)} en ${formatTime((20 * 60 - (tzDiff * 60) + 1440) % 1440)} (16:00-20:00 bestemmingstijd)</li>`;
+                lightAdvice += `<li><span class="time-badge">Licht vermijden</span> Vermijd helder ochtendlicht voor ${formatTime(lightAvoidTime)} (08:00 bestemmingstijd)</li>`;
+                lightAdvice += `<li><span class="time-badge">Tip</span> Blijf 's avonds in goed verlichte ruimtes om langer wakker te blijven</li>`;
+            }
+            lightAdvice += '</ul>';
+            document.getElementById('light-advice').innerHTML = lightAdvice;
+
+            // Preparation schedule
+            let prepSchedule = '<div class="timeline">';
+
+            if (daysBefore > 0) {
+                const shiftPerDay = Math.min(2, absDiff / daysBefore); // Max 2 hours shift per day
+
+                for (let day = daysBefore; day >= 1; day--) {
+                    const totalShift = shiftPerDay * (daysBefore - day + 1);
+                    let adjustedBedtime, adjustedWaketime;
+
+                    if (direction === 'east') {
+                        adjustedBedtime = (bedtimeMins - (totalShift * 60) + 1440) % 1440;
+                        adjustedWaketime = (waketimeMins - (totalShift * 60) + 1440) % 1440;
+                    } else {
+                        adjustedBedtime = (bedtimeMins + (totalShift * 60)) % 1440;
+                        adjustedWaketime = (waketimeMins + (totalShift * 60)) % 1440;
+                    }
+
+                    prepSchedule += `
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <strong>${day} dag${day > 1 ? 'en' : ''} voor vertrek</strong><br>
+                                Bedtijd: ${formatTime(adjustedBedtime)} | Opstaan: ${formatTime(adjustedWaketime)}<br>
+                                <small style="color: #888;">Verschuiving: ${totalShift.toFixed(1)} uur ${direction === 'east' ? 'eerder' : 'later'}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                prepSchedule += `
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <strong>Geen voorbereiding geselecteerd</strong><br>
+                            Je kunt je reis beter verdragen door een paar dagen van tevoren je slaapritme aan te passen.
+                        </div>
+                    </div>
+                `;
+            }
+
+            prepSchedule += '</div>';
+            document.getElementById('preparation-schedule').innerHTML = prepSchedule;
+
+            // Arrival advice
+            let arrivalAdvice = '<ul>';
+
+            if (arrivalMins < 12 * 60) { // Arriving in the morning
+                arrivalAdvice += `<li><span class="time-badge">Aankomst 's ochtends</span> Perfect! Blijf wakker tot de lokale avond</li>`;
+                arrivalAdvice += `<li><span class="time-badge">Activiteit</span> Ga naar buiten, maak een wandeling in het zonlicht</li>`;
+                arrivalAdvice += `<li><span class="time-badge">Geen dutjes</span> Vermijd slapen tot minstens 20:00 lokale tijd <span class="advice-tag important">BELANGRIJK</span></li>`;
+            } else if (arrivalMins < 18 * 60) { // Arriving in the afternoon
+                arrivalAdvice += `<li><span class="time-badge">Aankomst 's middags</span> Blijf actief en wakker tot de lokale bedtijd</li>`;
+                if (direction === 'east') {
+                    arrivalAdvice += `<li><span class="time-badge">Power nap</span> Maximaal 20 minuten als je echt niet kunt, maar liever niet</li>`;
+                }
+                arrivalAdvice += `<li><span class="time-badge">Tip</span> Eet een lichte maaltijd en drink veel water</li>`;
+            } else { // Arriving in the evening
+                arrivalAdvice += `<li><span class="time-badge">Aankomst 's avonds</span> Je kunt vrij snel naar bed, maar wacht tot minstens 21:00 lokale tijd</li>`;
+                arrivalAdvice += `<li><span class="time-badge">Slaap</span> Probeer een volledige nacht te slapen (7-8 uur)</li>`;
+            }
+
+            arrivalAdvice += `<li><span class="time-badge">Eerste dagen</span> Volg strikt de lokale tijd voor maaltijden en slaap</li>`;
+            arrivalAdvice += `<li><span class="time-badge">Cafeïne</span> Alleen 's ochtends gebruiken, stop na 14:00 lokale tijd</li>`;
+            arrivalAdvice += '</ul>';
+            document.getElementById('arrival-advice').innerHTML = arrivalAdvice;
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
